@@ -9,6 +9,8 @@ vgg_path = './weight/vgg_normalised.pth'
 decoder_path = './weight/decoder.pth'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+print('working on ', device)
+
 class AdainStyleTransfer():
     def __init__(self):
         # 인코더(Encoder) 정의
