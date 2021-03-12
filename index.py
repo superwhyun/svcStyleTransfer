@@ -50,7 +50,7 @@ def viewStyleTransfer():
 
 import av
 import cv2
-from aiortc.contrib.media import MediaPlayer
+
 try:
     from typing import Literal
 except ImportError:
@@ -68,8 +68,6 @@ WEBRTC_CLIENT_SETTINGS = ClientSettings(
     media_stream_constraints={"video": True, "audio": True},
 )
 
-def viewLiveObjectDetect():
-    st.title("Live Object Detect using WebRTC")
 
 def viewWebRTCVideoTransform():    
     st.title("Live Video Transformation using WebRTC")
@@ -318,9 +316,69 @@ def viewLiveObjectDetect():
     )
 
 
+from aiortc.contrib.media import MediaPlayer
+
+def viewMediaStreaming():
+    """ Media streamings """
+    MEDIAFILES = {
+        "big_buck_bunny_720p_2mb.mp4": {
+            "url": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_2mb.mp4",  # noqa: E501
+            "local_file_path": HERE / "data/big_buck_bunny_720p_2mb.mp4",
+            "type": "video",
+        },
+        "big_buck_bunny_720p_10mb.mp4": {
+            "url": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_10mb.mp4",  # noqa: E501
+            "local_file_path": HERE / "data/big_buck_bunny_720p_10mb.mp4",
+            "type": "video",
+        },
+        "file_example_MP3_700KB.mp3": {
+            "url": "https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3",  # noqa: E501
+            "local_file_path": HERE / "data/file_example_MP3_700KB.mp3",
+            "type": "audio",
+        },
+        "file_example_MP3_5MG.mp3": {
+            "url": "https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_5MG.mp3",  # noqa: E501
+            "local_file_path": HERE / "data/file_example_MP3_5MG.mp3",
+            "type": "audio",
+        },
+    }
+    media_file_label = st.radio(
+        "Select a media file to stream", tuple(MEDIAFILES.keys())
+    )
+    media_file_info = MEDIAFILES[media_file_label]
+    download_file(media_file_info["url"], media_file_info["local_file_path"])
+
+    def create_player():
+        return MediaPlayer(str(media_file_info["local_file_path"]))
+
+        # NOTE: To stream the video from webcam, use the code below.
+        # return MediaPlayer(
+        #     "1:none",
+        #     format="avfoundation",
+        #     options={"framerate": "30", "video_size": "1280x720"},
+        # )
+
+    WEBRTC_CLIENT_SETTINGS.update(
+        {
+            "media_stream_constraints": {
+                "video": media_file_info["type"] == "video",
+                "audio": media_file_info["type"] == "audio",
+            }
+        }
+    )
+
+    print(media_file_label)
+    webrtc_streamer(
+        key=f"media-streaming-{media_file_label}",
+        mode=WebRtcMode.RECVONLY,
+        client_settings=WEBRTC_CLIENT_SETTINGS,
+        player_factory=create_player,
+    )
+
+
 
 def main():
-    page = st.sidebar.selectbox("Choose a page", ["Homepage", "StyleTransfer", "LiveVideoTransform", "LiveObjectDetect", "Segmentation"])
+    page = st.sidebar.selectbox("Choose a page", ["Homepage", "StyleTransfer", "LiveVideoTransform", "LiveObjectDetect", "MediaStreaming", "Segmentation"])
 
     if(page == "Homepage"):
         st.header("About")
@@ -332,6 +390,8 @@ def main():
         viewWebRTCVideoTransform()    
     elif(page == "LiveObjectDetect"):
         viewLiveObjectDetect()    
+    elif(page == "MediaStreaming"):
+        viewMediaStreaming()            
     elif(page == "Segmentation"):        
         st.title("TBD")
 
